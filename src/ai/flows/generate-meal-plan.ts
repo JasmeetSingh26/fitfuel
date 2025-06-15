@@ -70,20 +70,26 @@ User Profile:
 
 Output Requirements:
 Your output MUST be a JSON object conforming to the 'GenerateMealPlanOutputSchema'.
+**Crucially, the 'weeklyMealPlan' array MUST contain exactly 7 'DailyMealPlan' objects, one for each day from Monday to Sunday.** Failure to provide 7 days will result in an error.
+
 - mealPlanTitle: Create a catchy, personalized title for the plan.
 - introduction: Write a brief, encouraging introduction.
-- weeklyMealPlan: This MUST be an array of 7 DailyMealPlan objects, one for each day of the week (Monday to Sunday).
+- weeklyMealPlan: An array of EXACTLY 7 DailyMealPlan objects (Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday).
   - For each DailyMealPlan:
-    - day: The name of the day.
+    - day: The name of the day (e.g., "Monday").
     - meals: An array of Meal objects. Include at least Breakfast, Lunch, and Dinner. Optionally add 1-2 Snacks.
       - For each Meal:
         - name: e.g., "Breakfast", "Lunch", "Dinner", "Morning Snack".
-        - description: Provide a detailed description of the food items, including approximate quantities. Make it sound appealing.
-        - calories: Estimate calories for the meal.
-        - protein: Estimate protein in grams (e.g., "25g").
-        - fat: Estimate fat in grams (e.g., "15g").
-        - carbs: Estimate carbohydrates in grams (e.g., "50g").
-    - dailyTotals: An object summarizing total estimated calories, protein, fat, and carbs for that day.
+        - description: Provide a DETAILED description of the food items, including approximate quantities. Make it sound appealing.
+        - calories: (Optional) Estimated calories for the meal (e.g., 350).
+        - protein: (Optional) Estimated protein in grams as a string (e.g., "25g"). **Provide only the value and unit, like "25g", not additional explanations or conversational text.**
+        - fat: (Optional) Estimated fat in grams as a string (e.g., "15g"). **Provide only the value and unit, like "15g", not additional explanations or conversational text.**
+        - carbs: (Optional) Estimated carbohydrates in grams as a string (e.g., "50g"). **Provide only the value and unit, like "50g", not additional explanations or conversational text.**
+    - dailyTotals: (Optional) An object summarizing total estimated calories, protein, fat, and carbs for that day. Ensure these totals are sums of the meal values if provided.
+      - calories: (Optional) Total estimated calories for the day.
+      - protein: (Optional) Total estimated protein for the day (e.g., "100g").
+      - fat: (Optional) Total estimated fat for the day (e.g., "60g").
+      - carbs: (Optional) Total estimated carbohydrates for the day (e.g., "150g").
 - closingNotes: Provide some encouraging closing remarks, general tips, or hydration reminders.
 
 Example for a single meal within a day:
@@ -100,7 +106,7 @@ Take all user information into account to make the meal plan as personalized and
 Ensure the meal descriptions are enticing and practical.
 Provide varied meals throughout the week.
 If nutritional information (calories, macros) is estimated, that's acceptable.
-The JSON structure must be strictly followed.
+**The JSON structure must be strictly followed, especially the requirement for a 7-day 'weeklyMealPlan' and the concise format for protein, fat, and carb strings (e.g., "25g").**
 `,
 });
 
@@ -115,3 +121,4 @@ const generateMealPlanFlow = ai.defineFlow(
     return output!;
   }
 );
+
