@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { UserProfileFormValues } from "@/lib/schemas";
-import { UserProfileSchema, workoutFrequencyOptions } from "@/lib/schemas";
+import { UserProfileSchema, workoutFrequencyOptions, genderOptions } from "@/lib/schemas";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Flame, ListChecks, Target, Dumbbell } from 'lucide-react';
+import { Flame, ListChecks, Target, Dumbbell, Scale, Ruler, Cake, Users, Loader2 } from 'lucide-react';
 
 interface UserProfileFormProps {
   onSubmit: (data: UserProfileFormValues) => Promise<void>;
@@ -39,11 +39,22 @@ export function UserProfileForm({ onSubmit, isLoading }: UserProfileFormProps) {
       fitnessGoals: "",
       preferences: "",
       workoutFrequency: undefined,
+      weight: undefined,
+      height: undefined,
+      age: undefined,
+      gender: undefined,
     },
   });
 
   const handleSubmit = async (data: UserProfileFormValues) => {
-    await onSubmit(data);
+    // Ensure numeric fields are numbers or undefined, not empty strings
+    const processedData = {
+        ...data,
+        weight: data.weight ? Number(data.weight) : undefined,
+        height: data.height ? Number(data.height) : undefined,
+        age: data.age ? Number(data.age) : undefined,
+    };
+    await onSubmit(processedData);
   };
 
   return (
@@ -54,7 +65,7 @@ export function UserProfileForm({ onSubmit, isLoading }: UserProfileFormProps) {
           Tell Us About Yourself
         </CardTitle>
         <CardDescription>
-          Provide your details so we can generate the perfect meal plan for you.
+          Provide your details so we can generate the perfect meal plan for you. The more details you provide, the better the plan!
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -77,6 +88,79 @@ export function UserProfileForm({ onSubmit, isLoading }: UserProfileFormProps) {
               )}
             />
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="weight"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2 text-lg"><Scale className="h-5 w-5 text-primary"/>Weight (kg)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="e.g., 70" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} />
+                    </FormControl>
+                    <FormDescription>Your current weight in kilograms (optional).</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="height"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2 text-lg"><Ruler className="h-5 w-5 text-primary"/>Height (cm)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="e.g., 175" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} />
+                    </FormControl>
+                    <FormDescription>Your current height in centimeters (optional).</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="age"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2 text-lg"><Cake className="h-5 w-5 text-primary"/>Age</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="e.g., 30" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value, 10))} />
+                    </FormControl>
+                    <FormDescription>Your current age in years (optional).</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2 text-lg"><Users className="h-5 w-5 text-primary"/>Gender</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your gender" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {genderOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>Your gender (optional, but helps tailor advice).</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
             <FormField
               control={form.control}
               name="workoutFrequency"
@@ -111,7 +195,7 @@ export function UserProfileForm({ onSubmit, isLoading }: UserProfileFormProps) {
                   <FormLabel className="flex items-center gap-2 text-lg"><ListChecks className="h-5 w-5 text-primary"/>Dietary Restrictions</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="e.g., Vegetarian, gluten-free, no dairy, none"
+                      placeholder="e.g., Vegetarian, gluten-free, no dairy, specific allergies, or 'none'"
                       {...field}
                     />
                   </FormControl>
@@ -131,7 +215,7 @@ export function UserProfileForm({ onSubmit, isLoading }: UserProfileFormProps) {
                   <FormLabel className="flex items-center gap-2 text-lg"><Flame className="h-5 w-5 text-primary"/>Food Preferences & Cuisines</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="e.g., Love spicy food, prefer Italian cuisine, dislike mushrooms"
+                      placeholder="e.g., Love spicy food, prefer Italian cuisine, dislike mushrooms, favorite fruits/vegetables"
                       {...field}
                     />
                   </FormControl>
@@ -159,6 +243,3 @@ export function UserProfileForm({ onSubmit, isLoading }: UserProfileFormProps) {
     </Card>
   );
 }
-
-// Add Loader2 to imports if not already there, or use existing LoadingSpinner
-import { Loader2 } from 'lucide-react';

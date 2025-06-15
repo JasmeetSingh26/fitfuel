@@ -10,21 +10,18 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { UserProfileSchema } from '@/lib/schemas'; // Import the full schema
 
-const GenerateMealPlanInputSchema = z.object({
-  dietaryRestrictions: z
-    .string()
-    .describe('Any dietary restrictions the user has (e.g., vegetarian, vegan, gluten-free).'),
-  fitnessGoals: z.string().describe('The fitness goals of the user (e.g., lose weight, gain muscle).'),
-  preferences: z.string().describe('The food preferences of the user (e.g., cuisine, favorite foods).'),
-  workoutFrequency: z
-    .string()
-    .describe('How many times per week the user works out (e.g. 3-5 times a week).'),
-});
+// Use the UserProfileSchema directly for input if it matches, or pick specific fields.
+// For this case, let's extend it slightly for clarity in the AI prompt, or use it as is if it covers all needs.
+const GenerateMealPlanInputSchema = UserProfileSchema.extend({
+  // No new fields needed if UserProfileSchema already has weight, height, age, gender
+}).describe("Input data for generating a personalized meal plan.");
+
 export type GenerateMealPlanInput = z.infer<typeof GenerateMealPlanInputSchema>;
 
 const GenerateMealPlanOutputSchema = z.object({
-  weeklyMealPlan: z.string().describe('A detailed weekly meal plan.'),
+  weeklyMealPlan: z.string().describe('A detailed weekly meal plan in Markdown format.'),
 });
 export type GenerateMealPlanOutput = z.infer<typeof GenerateMealPlanOutputSchema>;
 
@@ -38,14 +35,21 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateMealPlanOutputSchema},
   prompt: `You are a personal fitness and diet coach.
 
-You will generate a highly customized weekly meal plan for the user based on their specific dietary restrictions, fitness goals and food preferences. Take into account their workout frequency when creating the meal plan. 
-
+You will generate a highly customized weekly meal plan for the user based on their specific details:
 Dietary Restrictions: {{{dietaryRestrictions}}}
 Fitness Goals: {{{fitnessGoals}}}
 Preferences: {{{preferences}}}
-WorkoutFrequency: {{{workoutFrequency}}}
+Workout Frequency: {{{workoutFrequency}}}
+{{#if weight}}Weight: {{{weight}}} kg{{/if}}
+{{#if height}}Height: {{{height}}} cm{{/if}}
+{{#if age}}Age: {{{age}}} years{{/if}}
+{{#if gender}}Gender: {{{gender}}}{{/if}}
 
-Provide the meal plan in a well-formatted and easy-to-read manner, including recipes and nutritional information.`,
+Take all this information into account when creating the meal plan.
+Provide the meal plan in a well-formatted Markdown and easy-to-read manner.
+The plan should include recipes and nutritional information where appropriate.
+Use Markdown headings for days of the week (e.g., # Monday), subheadings for meals (e.g., ## Breakfast), and bullet points for ingredients or instructions.
+Ensure the output is a single string containing the entire Markdown document.`,
 });
 
 const generateMealPlanFlow = ai.defineFlow(
