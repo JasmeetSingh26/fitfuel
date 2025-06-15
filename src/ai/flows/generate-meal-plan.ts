@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -10,18 +11,38 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { UserProfileSchema } from '@/lib/schemas'; // Import the full schema
+import { UserProfileSchema } from '@/lib/schemas';
 
-// Use the UserProfileSchema directly for input if it matches, or pick specific fields.
-// For this case, let's extend it slightly for clarity in the AI prompt, or use it as is if it covers all needs.
 const GenerateMealPlanInputSchema = UserProfileSchema.extend({
-  // No new fields needed if UserProfileSchema already has weight, height, age, gender
 }).describe("Input data for generating a personalized meal plan.");
 
 export type GenerateMealPlanInput = z.infer<typeof GenerateMealPlanInputSchema>;
 
+const MealSchema = z.object({
+  name: z.string().describe("Name of the meal (e.g., Breakfast, Lunch, Dinner, Snack)."),
+  description: z.string().describe("Description of the meal, including food items and approximate quantities. Be specific and appealing."),
+  calories: z.number().optional().describe("Estimated calorie count for this meal (e.g., 350)."),
+  protein: z.string().optional().describe("Estimated protein content for this meal (e.g., '20g')."),
+  fat: z.string().optional().describe("Estimated fat content for this meal (e.g., '15g')."),
+  carbs: z.string().optional().describe("Estimated carbohydrate content for this meal (e.g., '40g')."),
+}).describe("Detailed information for a single meal.");
+
+const DailyMealPlanSchema = z.object({
+  day: z.string().describe("Day of the week (e.g., Monday, Tuesday)."),
+  meals: z.array(MealSchema).min(3,"Each day should have at least Breakfast, Lunch, and Dinner.").describe("List of meals for the day. Typically includes Breakfast, Lunch, Dinner, and optionally Snacks."),
+  dailyTotals: z.object({
+    calories: z.number().optional().describe("Total estimated calories for the day."),
+    protein: z.string().optional().describe("Total estimated protein for the day (e.g., '100g')."),
+    fat: z.string().optional().describe("Total estimated fat for the day (e.g., '60g')."),
+    carbs: z.string().optional().describe("Total estimated carbohydrates for the day (e.g., '150g')."),
+  }).optional().describe("Summary of daily nutritional totals for calories, protein, fat, and carbs."),
+}).describe("A plan for all meals and nutritional totals for a single day.");
+
 const GenerateMealPlanOutputSchema = z.object({
-  weeklyMealPlan: z.string().describe('A detailed weekly meal plan in Markdown format.'),
+  mealPlanTitle: z.string().optional().describe("A catchy and personalized title for the generated meal plan (e.g., 'Your Energizing Week of Healthy Eating!')."),
+  introduction: z.string().optional().describe("A brief introductory message or overview of the meal plan, perhaps highlighting how it aligns with user goals."),
+  weeklyMealPlan: z.array(DailyMealPlanSchema).length(7, "The meal plan must cover all 7 days of the week.").describe("A list of daily meal plans for the entire week (7 days)."),
+  closingNotes: z.string().optional().describe("Any concluding remarks, tips for success, hydration reminders, or general healthy eating advice."),
 });
 export type GenerateMealPlanOutput = z.infer<typeof GenerateMealPlanOutputSchema>;
 
@@ -33,23 +54,54 @@ const prompt = ai.definePrompt({
   name: 'generateMealPlanPrompt',
   input: {schema: GenerateMealPlanInputSchema},
   output: {schema: GenerateMealPlanOutputSchema},
-  prompt: `You are a personal fitness and diet coach.
+  prompt: `You are an expert personal fitness and diet coach.
 
-You will generate a highly customized weekly meal plan for the user based on their specific details:
-Dietary Restrictions: {{{dietaryRestrictions}}}
-Fitness Goals: {{{fitnessGoals}}}
-Preferences: {{{preferences}}}
-Workout Frequency: {{{workoutFrequency}}}
-{{#if weight}}Weight: {{{weight}}} kg{{/if}}
-{{#if height}}Height: {{{height}}} cm{{/if}}
-{{#if age}}Age: {{{age}}} years{{/if}}
-{{#if gender}}Gender: {{{gender}}}{{/if}}
+Your task is to generate a highly customized weekly meal plan based on the user's specific details.
 
-Take all this information into account when creating the meal plan.
-Provide the meal plan in a well-formatted Markdown and easy-to-read manner.
-The plan should include recipes and nutritional information where appropriate.
-Use Markdown headings for days of the week (e.g., # Monday), subheadings for meals (e.g., ## Breakfast), and bullet points for ingredients or instructions.
-Ensure the output is a single string containing the entire Markdown document.`,
+User Profile:
+- Dietary Restrictions: {{{dietaryRestrictions}}}
+- Fitness Goals: {{{fitnessGoals}}}
+- Food Preferences & Cuisines: {{{preferences}}}
+- Workout Frequency: {{{workoutFrequency}}}
+{{#if weight}}- Weight: {{{weight}}} kg{{/if}}
+{{#if height}}- Height: {{{height}}} cm{{/if}}
+{{#if age}}- Age: {{{age}}} years{{/if}}
+{{#if gender}}- Gender: {{{gender}}}{{/if}}
+
+Output Requirements:
+Your output MUST be a JSON object conforming to the 'GenerateMealPlanOutputSchema'.
+- mealPlanTitle: Create a catchy, personalized title for the plan.
+- introduction: Write a brief, encouraging introduction.
+- weeklyMealPlan: This MUST be an array of 7 DailyMealPlan objects, one for each day of the week (Monday to Sunday).
+  - For each DailyMealPlan:
+    - day: The name of the day.
+    - meals: An array of Meal objects. Include at least Breakfast, Lunch, and Dinner. Optionally add 1-2 Snacks.
+      - For each Meal:
+        - name: e.g., "Breakfast", "Lunch", "Dinner", "Morning Snack".
+        - description: Provide a detailed description of the food items, including approximate quantities. Make it sound appealing.
+        - calories: Estimate calories for the meal.
+        - protein: Estimate protein in grams (e.g., "25g").
+        - fat: Estimate fat in grams (e.g., "15g").
+        - carbs: Estimate carbohydrates in grams (e.g., "50g").
+    - dailyTotals: An object summarizing total estimated calories, protein, fat, and carbs for that day.
+- closingNotes: Provide some encouraging closing remarks, general tips, or hydration reminders.
+
+Example for a single meal within a day:
+{
+  "name": "Breakfast",
+  "description": "Greek yogurt (200g) with mixed berries (1 cup) and a sprinkle of chia seeds (1 tbsp).",
+  "calories": 350,
+  "protein": "22g",
+  "fat": "10g",
+  "carbs": "45g"
+}
+
+Take all user information into account to make the meal plan as personalized and effective as possible.
+Ensure the meal descriptions are enticing and practical.
+Provide varied meals throughout the week.
+If nutritional information (calories, macros) is estimated, that's acceptable.
+The JSON structure must be strictly followed.
+`,
 });
 
 const generateMealPlanFlow = ai.defineFlow(

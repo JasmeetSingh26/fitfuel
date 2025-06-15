@@ -1,149 +1,175 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Printer, FileText } from "lucide-react";
+import { Printer, FileText, Zap, BookOpenText, ChevronsDown } from "lucide-react";
+import type { GenerateMealPlanOutput, DailyMealPlan, Meal } from '@/ai/flows/generate-meal-plan';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface MealPlanDisplayProps {
-  mealPlan: string | null;
+  mealPlanOutput: GenerateMealPlanOutput | null;
 }
 
-// Basic Markdown-to-HTML-like parser
-const parseMealPlanContent = (content: string): JSX.Element[] => {
-  // Split by newline characters (both \n and \\n from AI)
-  const lines = content.split(/\r?\n|\\n/);
-  
-  let inList = false;
-  const elements: JSX.Element[] = [];
-
-  lines.forEach((line, index) => {
-    const originalLine = line;
-    line = line.trim();
-
-    // Handle headings (Markdown #, ##, ###)
-    if (line.startsWith('#')) {
-      if (inList) {
-        elements.push(<ul key={`ul-end-${index-1}`} className="ml-6 list-disc space-y-1 mb-3"></ul>); // Close previous list
-        inList = false;
-      }
-      let level = 0;
-      while(line[level] === '#') level++;
-      const text = line.substring(level).trim();
-      if (level === 1) elements.push(<h2 key={index} className="text-2xl font-headline mt-6 mb-3 text-primary border-b pb-1">{text}</h2>);
-      else if (level === 2) elements.push(<h3 key={index} className="text-xl font-headline mt-4 mb-2 text-gray-700 dark:text-gray-300">{text}</h3>);
-      else if (level === 3) elements.push(<h4 key={index} className="text-lg font-semibold mt-3 mb-1 text-gray-600 dark:text-gray-400">{text}</h4>);
-      else elements.push(<h5 key={index} className="text-md font-semibold mt-2 mb-1">{text}</h5>);
-      return;
-    }
-    
-    // Handle list items (Markdown *, -, +)
-    if (line.startsWith('* ') || line.startsWith('- ') || line.startsWith('+ ')) {
-      if (!inList) {
-        // This is a bit tricky: React needs a key for the ul.
-        // We can't just open <ul> here and close later easily across iterations.
-        // Instead, we'll collect list items and wrap them later, or render <li> directly.
-        // For simplicity now, let's make each a separate <li> under a conceptual list.
-        // A more robust parser would group them.
-        // For now, let's assume each list item is rendered independently for styling.
-      }
-      // inList = true; // This simple parser won't create a single <ul> tag currently.
-      // For better structure, one would buffer <li> items and wrap them in <ul>.
-      // Simplified:
-      elements.push(<li key={index} className="ml-6 list-disc my-0.5">{line.substring(2).trim()}</li>);
-      return;
-    } else {
-      if (inList) {
-         // elements.push(<ul key={`ul-end-${index-1}`} className="ml-6 list-disc space-y-1 mb-3"></ul>); // Close previous list
-        inList = false; // Not strictly necessary with current li handling but good for logic
-      }
-    }
-
-    // Handle bold text (Markdown **text** or __text__)
-    // Handle italic text (Markdown *text* or _text_)
-    // This regex can be a bit greedy, careful with complex nesting.
-    let processedLine = originalLine; // Use original line for spacing if needed, trim for logic
-    processedLine = processedLine.replace(/\*\*(.*?)\*\*|__(.*?)__/g, '<strong>$1$2</strong>');
-    processedLine = processedLine.replace(/\*(.*?)\*|_(.*?)_/g, '<em>$1$2</em>');
-
-    if (line === '') { // Handle empty lines as paragraph breaks or spacers
-      elements.push(<div key={index} className="h-3"></div>); // Spacer div
-    } else {
-      elements.push(<p key={index} className="my-2 leading-relaxed" dangerouslySetInnerHTML={{ __html: processedLine }} />);
-    }
-  });
-  
-  // If the last item was part of a list (in a more complex parser)
-  if (inList) {
-     // elements.push(<ul key={`ul-end-final`} className="ml-6 list-disc space-y-1 mb-3"></ul>);
-  }
-
-  return elements;
-};
-
-
-export function MealPlanDisplay({ mealPlan }: MealPlanDisplayProps) {
-  if (!mealPlan) {
+export function MealPlanDisplay({ mealPlanOutput }: MealPlanDisplayProps) {
+  if (!mealPlanOutput || !mealPlanOutput.weeklyMealPlan) {
     return null;
   }
+
+  const { mealPlanTitle, introduction, weeklyMealPlan, closingNotes } = mealPlanOutput;
 
   const handlePrint = () => {
     const printWindow = window.open('', '_blank');
     if (printWindow) {
-      const mealPlanContentElement = document.getElementById('mealPlanContent');
+      const mealPlanContentElement = document.getElementById('mealPlanPrintContent');
       if (mealPlanContentElement) {
         printWindow.document.write('<html><head><title>FitFuel AI - Meal Plan</title>');
-        printWindow.document.write('<style>');
+        // Basic print styling - can be significantly expanded
         printWindow.document.write(`
-          body { font-family: 'PT Sans', sans-serif; line-height: 1.6; color: #333; padding: 20px; }
-          h1, h2, h3, h4, h5 { font-family: 'Poppins', sans-serif; color: #1a73e8; margin-bottom: 0.5em; margin-top: 1em; }
-          h1 { font-size: 28px; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; } 
-          h2 { font-size: 22px; border-bottom: 1px solid #eee; padding-bottom: 5px;} 
-          h3 { font-size: 18px; }
-          h4 { font-size: 16px; }
-          ul { padding-left: 20px; margin-bottom: 1em; }
-          li { margin-bottom: 0.25em; }
-          p { margin-bottom: 0.75em; }
-          strong { font-weight: bold; }
-          em { font-style: italic; }
-          .print-header { text-align: center; margin-bottom: 20px; }
-          .print-header h1 { font-size: 32px; color: #29ABE2;}
+          <style>
+            body { font-family: 'PT Sans', sans-serif; line-height: 1.6; color: #333; padding: 20px; margin: 0 auto; max-width: 800px; }
+            h1, h2, h3, h4, h5 { font-family: 'Poppins', sans-serif; color: #1a73e8; margin-bottom: 0.5em; margin-top: 1em; }
+            h1 { font-size: 26px; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; color: #29ABE2; }
+            h2 { font-size: 22px; margin-top: 1.5em; } /* Meal Plan Title */
+            h3 { font-size: 20px; color: #333; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-top:1.5em; } /* Day Titles */
+            h4 { font-size: 16px; color: #555; margin-top:1em; } /* Meal Names */
+            p { margin-bottom: 0.75em; }
+            table { width: 100%; border-collapse: collapse; margin-top: 1em; margin-bottom: 2em; font-size: 0.9em; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; font-weight: bold; }
+            .meal-description { font-style: italic; color: #444; }
+            .totals-row td { font-weight: bold; background-color: #e9f5ff; }
+            .print-header { text-align: center; margin-bottom: 20px; }
+            .introduction, .closing-notes { margin-top: 20px; margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border-left: 4px solid #29ABE2; }
+            @media print {
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              .no-print { display: none; }
+            }
+          </style>
         `);
-        printWindow.document.write('</style></head><body>');
+        printWindow.document.write('</head><body>');
         printWindow.document.write('<div class="print-header"><h1>FitFuel AI - Your Weekly Meal Plan</h1></div>');
-        printWindow.document.write(mealPlanContentElement.innerHTML);
-        printWindow.document.write('</body></html>');
+        printWindow.document.write('<div id="mealPlanPrintContentInternal">');
+        if (mealPlanTitle) printWindow.document.write(`<h2>${mealPlanTitle}</h2>`);
+        if (introduction) printWindow.document.write(`<div class="introduction"><p>${introduction.replace(/\n/g, '<br>')}</p></div>`);
+        
+        weeklyMealPlan.forEach(dayPlan => {
+          printWindow.document.write(`<h3>${dayPlan.day}</h3>`);
+          printWindow.document.write('<table><thead><tr><th>Meal</th><th>Description</th><th>Calories</th><th>Protein</th><th>Fat</th><th>Carbs</th></tr></thead><tbody>');
+          dayPlan.meals.forEach(meal => {
+            printWindow.document.write(`<tr>
+              <td>${meal.name}</td>
+              <td class="meal-description">${meal.description}</td>
+              <td>${meal.calories ? `${meal.calories} kcal` : '-'}</td>
+              <td>${meal.protein || '-'}</td>
+              <td>${meal.fat || '-'}</td>
+              <td>${meal.carbs || '-'}</td>
+            </tr>`);
+          });
+          if (dayPlan.dailyTotals) {
+            printWindow.document.write(`<tr class="totals-row">
+              <td><strong>Daily Totals</strong></td>
+              <td></td>
+              <td>${dayPlan.dailyTotals.calories ? `${dayPlan.dailyTotals.calories} kcal` : '-'}</td>
+              <td>${dayPlan.dailyTotals.protein || '-'}</td>
+              <td>${dayPlan.dailyTotals.fat || '-'}</td>
+              <td>${dayPlan.dailyTotals.carbs || '-'}</td>
+            </tr>`);
+          }
+          printWindow.document.write('</tbody></table>');
+        });
+
+        if (closingNotes) printWindow.document.write(`<div class="closing-notes"><p>${closingNotes.replace(/\n/g, '<br>')}</p></div>`);
+        printWindow.document.write('</div></body></html>');
         printWindow.document.close();
-        // Timeout to ensure content is loaded before printing
         setTimeout(() => {
             printWindow.print();
-            printWindow.close(); // Optionally close after printing
-        }, 500);
+        }, 500); // Give browser time to render content
       }
     }
   };
 
-  const parsedContent = parseMealPlanContent(mealPlan);
-
   return (
-    <Card className="w-full max-w-4xl mx-auto mt-12 shadow-xl">
+    <Card className="w-full max-w-5xl mx-auto mt-12 shadow-xl animate-fade-in">
       <CardHeader className="flex flex-row justify-between items-start">
         <div>
           <CardTitle className="font-headline text-3xl text-primary flex items-center gap-2">
-             <FileText className="h-8 w-8" />
-            Your Personalized Meal Plan
+            <Zap className="h-8 w-8" />
+            {mealPlanTitle || "Your Personalized Meal Plan"}
           </CardTitle>
-          <CardDescription>Here is your AI-generated weekly meal plan. Scroll down to see all days and meals. Enjoy!</CardDescription>
+          {introduction && <CardDescription className="mt-2 text-base">{introduction}</CardDescription>}
         </div>
-        <Button variant="outline" size="icon" onClick={handlePrint} aria-label="Print meal plan">
+        <Button variant="outline" size="icon" onClick={handlePrint} aria-label="Print meal plan" className="no-print">
           <Printer className="h-5 w-5" />
         </Button>
       </CardHeader>
       <CardContent>
-        <div id="mealPlanContent" className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none space-y-1 text-foreground/90">
-          {parsedContent.map((element, i) => 
-            React.isValidElement(element) ? React.cloneElement(element, { key: `mp-${i}` }) : element
-          )}
+        <div id="mealPlanPrintContent"> {/* Wrapper for print content */}
+          <Accordion type="single" collapsible className="w-full" defaultValue={`item-${weeklyMealPlan[0]?.day || '0'}`}>
+            {weeklyMealPlan.map((dayPlan: DailyMealPlan, index: number) => (
+              <AccordionItem value={`item-${dayPlan.day || index}`} key={dayPlan.day || index} className="border-b border-border/50 last:border-b-0">
+                <AccordionTrigger className="py-4 px-2 hover:bg-muted/50 rounded-md group">
+                  <div className="flex items-center justify-between w-full">
+                    <h3 className="text-xl md:text-2xl font-headline text-primary group-hover:text-accent transition-colors">
+                      {dayPlan.day}
+                    </h3>
+                    {dayPlan.dailyTotals?.calories && (
+                      <span className="text-sm font-medium text-muted-foreground pr-4">
+                        {dayPlan.dailyTotals.calories} kcal
+                      </span>
+                    )}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 pb-4 px-1">
+                  <Table className="border rounded-lg shadow-sm">
+                    <TableHeader>
+                      <TableRow className="bg-muted/30">
+                        <TableHead className="w-[120px] font-semibold text-foreground/80">Meal</TableHead>
+                        <TableHead className="font-semibold text-foreground/80">Description</TableHead>
+                        <TableHead className="w-[100px] text-right font-semibold text-foreground/80">Calories</TableHead>
+                        <TableHead className="w-[90px] text-right font-semibold text-foreground/80">Protein</TableHead>
+                        <TableHead className="w-[90px] text-right font-semibold text-foreground/80">Fat</TableHead>
+                        <TableHead className="w-[90px] text-right font-semibold text-foreground/80">Carbs</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {dayPlan.meals.map((meal: Meal, mealIndex: number) => (
+                        <TableRow key={mealIndex} className="hover:bg-muted/20">
+                          <TableCell className="font-medium py-3">{meal.name}</TableCell>
+                          <TableCell className="py-3 text-sm text-foreground/90">{meal.description}</TableCell>
+                          <TableCell className="text-right py-3">{meal.calories ? `${meal.calories} kcal` : '-'}</TableCell>
+                          <TableCell className="text-right py-3">{meal.protein || '-'}</TableCell>
+                          <TableCell className="text-right py-3">{meal.fat || '-'}</TableCell>
+                          <TableCell className="text-right py-3">{meal.carbs || '-'}</TableCell>
+                        </TableRow>
+                      ))}
+                      {dayPlan.dailyTotals && (
+                        <TableRow className="bg-primary/10 hover:bg-primary/20">
+                          <TableCell colSpan={2} className="font-bold text-primary py-3">Daily Totals</TableCell>
+                          <TableCell className="text-right font-bold text-primary py-3">{dayPlan.dailyTotals.calories ? `${dayPlan.dailyTotals.calories} kcal` : '-'}</TableCell>
+                          <TableCell className="text-right font-bold text-primary py-3">{dayPlan.dailyTotals.protein || '-'}</TableCell>
+                          <TableCell className="text-right font-bold text-primary py-3">{dayPlan.dailyTotals.fat || '-'}</TableCell>
+                          <TableCell className="text-right font-bold text-primary py-3">{dayPlan.dailyTotals.carbs || '-'}</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
+        {closingNotes && (
+          <div className="mt-8 p-6 bg-card border rounded-lg shadow">
+            <CardTitle className="font-headline text-2xl text-primary flex items-center gap-2 mb-3">
+              <BookOpenText className="h-7 w-7" />
+              A Few Final Tips
+            </CardTitle>
+            <p className="text-foreground/80 whitespace-pre-line">{closingNotes}</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
+

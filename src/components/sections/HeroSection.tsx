@@ -19,14 +19,11 @@ export function HeroSection() {
           Unlock your peak performance with personalized meal plans designed by AI. Tell us your fitness goals, dietary needs, and preferences, and let FitFuel AI craft your perfect weekly menu!
         </p>
         {/* Image section removed */}
-        <Button
-          size="lg"
-          className="font-semibold text-lg bg-accent hover:bg-accent/90 text-accent-foreground mt-10"
-          onClick={scrollToForm}
-          aria-label="Get started with your meal plan"
+        <Button size="lg" className="font-semibold text-lg bg-accent hover:bg-accent/90 text-accent-foreground mt-10" onClick={scrollToForm}
+        aria-label="Get started with your meal plan for free"
         >
-          Get Your Personalized Meal Plan For FREE
-          <ChevronDown className="ml-2 h-5 w-5" />
+ Get Your Personalized Meal Plan For <br></br> FREE
+ <ChevronDown className="ml-2 h-5 w-5" />
         </Button>
       </div>
     </section>
