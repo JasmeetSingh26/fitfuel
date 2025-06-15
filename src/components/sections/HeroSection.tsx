@@ -25,7 +25,7 @@ export function HeroSection() {
           onClick={scrollToForm}
           aria-label="Get started with your meal plan"
         >
-          Get Your Personalized Meal Plan
+          Get Your Personalized Meal Plan For FREE
           <ChevronDown className="ml-2 h-5 w-5" />
         </Button>
       </div>
