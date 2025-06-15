@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -96,7 +97,7 @@ export function UserProfileForm({ onSubmit, isLoading }: UserProfileFormProps) {
                   <FormItem>
                     <FormLabel className="flex items-center gap-2 text-lg"><Scale className="h-5 w-5 text-primary"/>Weight (kg)</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="e.g., 70" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} />
+                      <Input type="number" placeholder="e.g., 70" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} />
                     </FormControl>
                     <FormDescription>Your current weight in kilograms (optional).</FormDescription>
                     <FormMessage />
@@ -110,7 +111,7 @@ export function UserProfileForm({ onSubmit, isLoading }: UserProfileFormProps) {
                   <FormItem>
                     <FormLabel className="flex items-center gap-2 text-lg"><Ruler className="h-5 w-5 text-primary"/>Height (cm)</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="e.g., 175" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} />
+                      <Input type="number" placeholder="e.g., 175" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))} />
                     </FormControl>
                     <FormDescription>Your current height in centimeters (optional).</FormDescription>
                     <FormMessage />
@@ -127,7 +128,7 @@ export function UserProfileForm({ onSubmit, isLoading }: UserProfileFormProps) {
                   <FormItem>
                     <FormLabel className="flex items-center gap-2 text-lg"><Cake className="h-5 w-5 text-primary"/>Age</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="e.g., 30" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value, 10))} />
+                      <Input type="number" placeholder="e.g., 30" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value, 10))} />
                     </FormControl>
                     <FormDescription>Your current age in years (optional).</FormDescription>
                     <FormMessage />
