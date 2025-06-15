@@ -83,14 +83,8 @@ Strive to include estimates for calories, protein, fat, and carbs for each meal 
         - name: e.g., "Breakfast", "Lunch", "Dinner", "Morning Snack".
         - description: Provide a DETAILED description of the food items, including approximate quantities. Make it sound appealing.
         - calories: Estimated calories for the meal (e.g., 350). Provide if possible.
-        - protein: Estimated protein in grams (e.g., "25g"). Provide if possible. **Format strictly as value and unit, e.g., "25g", not conversational text.**
-        - fat: Estimated fat in grams (e.g., "15g"). Provide if possible. **Format strictly as value and unit, e.g., "15g", not conversational text.**
-        - carbs: Estimated carbohydrates in grams (e.g., "50g"). Provide if possible. **Format strictly as value and unit, e.g., "50g", not conversational text.**
-    - dailyTotals: An object summarizing total estimated calories, protein, fat, and carbs for that day. Provide these estimates if possible. Ensure these totals are reasonable sums of the meal values if meal-level nutrition is provided.
+   - dailyTotals: An object summarizing total estimated calories, protein, fat, and carbs for that day. Provide these estimates if possible. Ensure these totals are reasonable sums of the meal values if meal-level nutrition is provided.
       - calories: Total estimated calories for the day. Provide if possible.
-      - protein: Total estimated protein for the day (e.g., "100g"). Provide if possible.
-      - fat: Total estimated fat for the day (e.g., "60g"). Provide if possible.
-      - carbs: Total estimated carbohydrates for the day (e.g., "150g"). Provide if possible.
 - closingNotes: Provide some encouraging closing remarks, general tips, or hydration reminders.
 
 Example for a single meal within a day:
@@ -98,9 +92,6 @@ Example for a single meal within a day:
   "name": "Breakfast",
   "description": "Greek yogurt (200g) with mixed berries (1 cup) and a sprinkle of chia seeds (1 tbsp).",
   "calories": 350,
-  "protein": "22g",
-  "fat": "10g",
-  "carbs": "45g"
 }
 
 Take all user information into account to make the meal plan as personalized and effective as possible.
