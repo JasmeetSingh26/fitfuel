@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script'; // Import the Next.js Script component
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from '@/lib/utils';
@@ -26,6 +27,10 @@ export default function RootLayout({
         <FirebaseAnalyticsInitializer />
         {children}
         <Toaster />
+        <Script
+          src='https://cdn.jotfor.ms/agent/embedjs/0197884bf8d9781490527928b0ff39122418/embed.js?skipWelcome=1&maximizable=1'
+          strategy="afterInteractive" // Ensures script loads after page is interactive
+        />
       </body>
     </html>
   );
