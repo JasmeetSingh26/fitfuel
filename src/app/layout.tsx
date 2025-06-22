@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from '@/lib/utils';
@@ -26,6 +27,11 @@ export default function RootLayout({
         <FirebaseAnalyticsInitializer />
         {children}
         <Toaster />
+        <Script
+          id="omnidimension-web-widget"
+          src="https://backend.omnidim.io/web_widget.js?secret_key=97728b196387e10bb4a5456e1bfc33ac"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
