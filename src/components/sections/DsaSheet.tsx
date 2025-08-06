@@ -17,7 +17,7 @@ interface DsaSheetProps {
 
 const difficultyVariant = {
   Easy: 'secondary',
-  Medium: 'default',
+  Medium: 'warning',
   Hard: 'destructive',
 } as const;
 
@@ -58,7 +58,7 @@ export function DsaSheet({ dsaSheetData, checkedState, onCheckChange }: DsaSheet
                               {question.title}
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge variant={difficultyVariant[question.difficulty] || 'default'} className="text-white">
+                            <Badge variant={difficultyVariant[question.difficulty] || 'default'} className="text-background">
                                 {question.difficulty}
                             </Badge>
                           </TableCell>
