@@ -6,8 +6,8 @@ import { cn } from '@/lib/utils';
 import { FirebaseAnalyticsInitializer } from '@/components/analytics/FirebaseAnalyticsInitializer';
 
 export const metadata: Metadata = {
-  title: 'FitFuel AI - Personalized Meal Plans',
-  description: 'Generate your personalized weekly meal plan with FitFuel AI, focusing on your fitness goals and dietary needs.',
+  title: 'Top DSA Questions',
+  description: 'A curated list of the most important DSA questions for interview preparation.',
 };
 
 export default function RootLayout({
@@ -27,11 +27,7 @@ export default function RootLayout({
         <FirebaseAnalyticsInitializer />
         {children}
         <Toaster />
-        <Script
-          id="omnidimension-web-widget"
-          src="https://backend.omnidim.io/web_widget.js?secret_key=97728b196387e10bb4a5456e1bfc33ac"
-          strategy="afterInteractive"
-        />
+        <Script id="omnidimension-web-widget" async src="https://backend.omnidim.io/web_widget.js?secret_key=97728b196387e10bb4a5456e1bfc33ac" ></Script>
       </body>
     </html>
   );
