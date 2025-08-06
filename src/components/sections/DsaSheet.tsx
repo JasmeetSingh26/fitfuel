@@ -1,10 +1,10 @@
+
 "use client";
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink } from 'lucide-react';
 import type { DsaTopic } from '@/lib/dsaData';
@@ -29,7 +29,7 @@ export function DsaSheet({ dsaSheetData, checkedState, onCheckChange }: DsaSheet
           DSA Problem List
         </CardTitle>
         <CardDescription>
-          Track your progress through the most important DSA questions. Your progress is saved in your browser.
+          A curated list of the most important DSA questions for interview preparation.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -46,7 +46,6 @@ export function DsaSheet({ dsaSheetData, checkedState, onCheckChange }: DsaSheet
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/30">
-                        <TableHead className="w-[60px] text-center font-semibold text-foreground/80">Status</TableHead>
                         <TableHead className="font-semibold text-foreground/80">Problem</TableHead>
                         <TableHead className="w-[120px] text-center font-semibold text-foreground/80">Difficulty</TableHead>
                         <TableHead className="w-[80px] text-center font-semibold text-foreground/80">Link</TableHead>
@@ -54,19 +53,9 @@ export function DsaSheet({ dsaSheetData, checkedState, onCheckChange }: DsaSheet
                     </TableHeader>
                     <TableBody>
                       {topic.questions.map((question) => (
-                        <TableRow key={question.id} className="hover:bg-muted/20 data-[state=checked]:bg-green-100/50 dark:data-[state=checked]:bg-green-900/20" data-state={checkedState[question.id] ? 'checked' : 'unchecked'}>
-                          <TableCell className="text-center">
-                            <Checkbox
-                              id={`check-${question.id}`}
-                              checked={checkedState[question.id]}
-                              onCheckedChange={() => onCheckChange(question.id)}
-                              aria-labelledby={`problem-title-${question.id}`}
-                            />
-                          </TableCell>
+                        <TableRow key={question.id} className="hover:bg-muted/20">
                           <TableCell className="font-medium py-3">
-                            <label htmlFor={`check-${question.id}`} id={`problem-title-${question.id}`} className="cursor-pointer">
                               {question.title}
-                            </label>
                           </TableCell>
                           <TableCell className="text-center">
                             <Badge variant={difficultyVariant[question.difficulty] || 'default'}>
