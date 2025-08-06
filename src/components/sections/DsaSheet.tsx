@@ -33,7 +33,7 @@ export function DsaSheet({ dsaSheetData, checkedState, onCheckChange }: DsaSheet
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Accordion type="multiple" collapsible className="w-full" defaultValue={dsaSheetData.map(topic => topic.title)}>
+        <Accordion type="multiple" collapsible="true" className="w-full" defaultValue={dsaSheetData.map(topic => topic.title)}>
           {dsaSheetData.map((topic) => (
             <AccordionItem value={topic.title} key={topic.title} className="border-b border-border/50 last:border-b-0">
               <AccordionTrigger className="py-4 px-2 hover:bg-muted/50 rounded-md group">
