@@ -25,7 +25,7 @@ export function DsaSheet({ dsaSheetData, checkedState, onCheckChange }: DsaSheet
   return (
     <Card className="w-full max-w-5xl mx-auto shadow-xl animate-fade-in border-stone-800">
       <CardHeader>
-        <CardTitle className="font-headline text-3xl text-primary">
+        <CardTitle className="font-headline text-3xl text-foreground">
           DSA Problem List
         </CardTitle>
         <CardDescription>
@@ -37,7 +37,7 @@ export function DsaSheet({ dsaSheetData, checkedState, onCheckChange }: DsaSheet
           {dsaSheetData.map((topic) => (
             <AccordionItem value={topic.title} key={topic.title} className="border-b border-border/50 last:border-b-0">
               <AccordionTrigger className="py-4 px-2 hover:bg-muted/50 rounded-md group">
-                <h3 className="text-xl md:text-2xl font-headline text-primary-foreground group-hover:text-primary transition-colors">
+                <h3 className="text-xl md:text-2xl font-headline text-foreground group-hover:text-primary transition-colors">
                   {topic.title}
                 </h3>
               </AccordionTrigger>
